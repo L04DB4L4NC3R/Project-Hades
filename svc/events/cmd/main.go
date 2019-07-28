@@ -1,8 +1,8 @@
 package main
 
 import (
-	service "github.com/GDGVIT/Project-Hades/events/cmd/service"
-	"github.com/GDGVIT/Project-Hades/model"
+	model "github.com/GDGVIT/Project-Hades/module"
+	service "github.com/GDGVIT/Project-Hades/svc/events/cmd/service"
 )
 
 func main() {

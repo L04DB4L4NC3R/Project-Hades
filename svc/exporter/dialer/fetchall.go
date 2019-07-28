@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/GDGVIT/Project-Hades/model"
+	model "github.com/GDGVIT/Project-Hades/module"
 )
 
 type FetchAllRequest struct {

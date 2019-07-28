@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/GDGVIT/Project-Hades/analytics/endpoints"
-	db "github.com/GDGVIT/Project-Hades/analytics/modelfuncs"
+	"github.com/GDGVIT/Project-Hades/svc/analytics/endpoints"
+	db "github.com/GDGVIT/Project-Hades/svc/analytics/modelfuncs"
 )
 
 func main() {

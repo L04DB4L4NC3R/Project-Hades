@@ -10,4 +10,4 @@ WORKDIR /go/src/github.com/GDGVIT/Project-Hades
 
 EXPOSE 8085
 
-ENTRYPOINT go run ./analytics/cmd/main.go 
+ENTRYPOINT go run ./svc/analytics/cmd/main.go 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/GDGVIT/Project-Hades/model"
+	model "github.com/GDGVIT/Project-Hades/module"
 )
 
 func CreateJSON(data []model.Participant, c chan error) {

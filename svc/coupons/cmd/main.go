@@ -1,8 +1,8 @@
 package main
 
 import (
-	service "github.com/GDGVIT/Project-Hades/coupons/cmd/service"
-	"github.com/GDGVIT/Project-Hades/model"
+	model "github.com/GDGVIT/Project-Hades/module"
+	service "github.com/GDGVIT/Project-Hades/svc/coupons/cmd/service"
 )
 
 func main() {

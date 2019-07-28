@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/GDGVIT/Project-Hades/exporter/endpoints/controller"
+	"github.com/GDGVIT/Project-Hades/svc/exporter/endpoints/controller"
 )
 
 func main() {

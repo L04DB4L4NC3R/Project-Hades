@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	db "github.com/GDGVIT/Project-Hades/analytics/modelfuncs"
+	db "github.com/GDGVIT/Project-Hades/svc/analytics/modelfuncs"
 )
 
 /**

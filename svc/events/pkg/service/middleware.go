@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	model "github.com/GDGVIT/Project-Hades/model"
+	model "github.com/GDGVIT/Project-Hades/module"
 	log "github.com/go-kit/kit/log"
 )
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/rs/cors"
 
-	db "github.com/GDGVIT/Project-Hades/analytics/modelfuncs"
+	db "github.com/GDGVIT/Project-Hades/svc/analytics/modelfuncs"
 	nats "github.com/nats-io/go-nats"
 )
 
