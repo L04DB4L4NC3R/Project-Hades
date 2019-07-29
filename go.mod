@@ -11,7 +11,7 @@ require (
 	github.com/jinzhu/gorm v1.9.9
 	github.com/johnnadratowski/golang-neo4j-bolt-driver v0.0.0-20181101021923-6b24c0085aae
 	github.com/lightstep/lightstep-tracer-common v1.0.3 // indirect
-	github.com/lightstep/lightstep-tracer-go v0.16.0
+	github.com/lightstep/lightstep-tracer-go v0.17.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/nats-io/go-nats v1.7.2
 	github.com/nats-io/nkeys v0.0.2 // indirect
