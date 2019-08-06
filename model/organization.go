@@ -2,11 +2,19 @@ package model
 
 import (
 	"errors"
+<<<<<<< HEAD
+=======
+	"fmt"
+>>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87
 	"log"
 	"time"
 )
 
+<<<<<<< HEAD
 func CreateNewOrg(org Organization) error {
+=======
+func CreateNewOrg(org Organization, user string) error {
+>>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87
 	data, _, _, err := con.QueryNeoAll(`
 MATCH(n:ORG) WHERE n.name = $name
 RETURN n.createdAt
@@ -24,7 +32,13 @@ RETURN n.createdAt
 	}
 
 	res, err := con.ExecNeo(`
+<<<<<<< HEAD
 					CREATE(n:ORG {name:$name, location: $location, description: $description, tag: $tag, createdAt: $cat, website: $website})
+=======
+				MATCH(u:USER)
+				WHERE u.email = $user
+					CREATE(n:ORG {name:$name, location: $location, description: $description, tag: $tag, createdAt: $cat, website: $website})<-[:ADMIN]-(u)
+>>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87
 				`, map[string]interface{}{
 		"name":        org.Name,
 		"location":    org.Location,
@@ -32,6 +46,10 @@ RETURN n.createdAt
 		"tag":         org.Tag,
 		"cat":         time.Now().String(),
 		"website":     org.Website,
+<<<<<<< HEAD
+=======
+		"user":        user,
+>>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87
 	})
 
 	if err != nil {
@@ -94,7 +112,11 @@ RETURN n.createdAt
 	res, err := con.ExecNeo(`
 		MATCH(n:ORG) WHERE n.name=$org
 		MATCH (a:USER) WHERE a.email=$user
+<<<<<<< HEAD
 		CREATE (n)-[:MEMBER]->(a)
+=======
+		CREATE (n)<-[:MEMBER]-(a)
+>>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87
 	`, map[string]interface{}{
 		"org":  org,
 		"user": email,
@@ -104,3 +126,156 @@ RETURN n.createdAt
 	return err
 
 }
+<<<<<<< HEAD
+=======
+
+func GetOrgs(org string) ([]Organization, error) {
+	res, _, _, err := con.QueryNeoAll(`
+					MATCH (n:ORG)
+					WHERE n.name STARTS WITH $name
+					RETURN n.name, n.location, n.description, n.tag, n.createdAt, n.website
+				`, map[string]interface{}{
+		"name": org,
+	})
+	if err != nil {
+		return nil, err
+	}
+	orgs := []Organization{}
+	for i, _ := range res {
+		orgs = append(orgs, Organization{
+			Name:        res[i][0].(string),
+			Location:    res[i][1].(string),
+			Description: res[i][2].(string),
+			Tag:         res[i][3].(string),
+			CreatedAt:   res[i][4].(string),
+			Website:     res[i][5].(string),
+		})
+	}
+	return orgs, nil
+}
+
+func CreateJoinRequest(user string, org string) error {
+
+	data, _, _, err := con.QueryNeoAll(`
+				MATCH(n:ORG)<-[r:JOIN]-(a:USER)
+				WHERE n.name = $org AND a.email = $user
+				RETURN r
+				`, map[string]interface{}{
+		"org":  org,
+		"user": user,
+	})
+
+	if len(data) > 1 {
+		return errors.New("A join request is already pending")
+	}
+	_, err = con.ExecNeo(`
+					MATCH(n:ORG) WHERE n.name = $org
+					MATCH(a:USER) WHERE a.email = $user
+					CREATE (n)<-[:JOIN]-(a)
+				`, map[string]interface{}{
+		"org":  org,
+		"user": user,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func AcceptJoinRequest(user string, org string) error {
+
+	data, _, _, err := con.QueryNeoAll(`
+				MATCH(n:ORG)<-[r:JOIN]-(a:USER)
+				WHERE n.name = $org AND a.email = $user
+				RETURN r
+				`, map[string]interface{}{
+		"org":  org,
+		"user": user,
+	})
+
+	if len(data) <= 1 {
+		return errors.New("No join request found")
+	}
+
+	_, err = con.ExecNeo(`
+					MATCH(n:ORG)<-[r:JOIN]-(a:USER) 
+					WHERE n.name = $org AND a.email = $user
+					DELETE r
+					CREATE (n)<-[:MEMBER]-(a)
+				`, map[string]interface{}{
+		"org":  org,
+		"user": user,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetJoinRequests(org string) ([]User, error) {
+	data, _, _, err := con.QueryNeoAll(`
+					MATCH (n:ORG)<-[:JOIN]-(a:USER)
+					WHERE n.name = $name
+					RETURN a.email, a.firstName, a.lastname, a.description,
+					a.createdAt, a.facebook, a.linkedIn
+				`, map[string]interface{}{
+		"name": org,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	users := []User{}
+	for i, _ := range data {
+		users = append(users, User{
+			Email:       data[i][0].(string),
+			FirstName:   data[i][1].(string),
+			LastName:    data[i][2].(string),
+			Description: data[i][3].(string),
+			CreatedAt:   data[i][4].(string),
+			Facebook:    data[i][5].(string),
+			LinkedIn:    data[i][6].(string),
+		})
+	}
+	return users, nil
+}
+
+func GetUserDetails(user string) (events []Event, orgs []Organization, err error) {
+	data, _, _, err := con.QueryNeoAll(`
+MATCH (u:USER)-[:MEMBER|:ADMIN]->(n:ORG)
+OPTIONAL MATCH (n)<-[:EVENT]-(e:EVENT)
+WHERE u.email = $user
+RETURN n.name, n.tag, n.location, n.description, n.createdAt,
+e.clubName, e.name, e.toDate, e.fromDate, e.toTime, e.fromTime, e.budget, e.description, e.category
+`, map[string]interface{}{
+		"user": user,
+	})
+	fmt.Println(data)
+
+	for i, _ := range data {
+		orgs = append(orgs, Organization{
+			Name:        data[i][0].(string),
+			Tag:         data[i][1].(string),
+			Location:    data[i][2].(string),
+			Description: data[i][3].(string),
+			CreatedAt:   data[i][4].(string),
+		})
+
+		if data[i][5] == nil {
+			continue
+		}
+		events = append(events, Event{
+			ClubName:    data[i][5].(string),
+			Name:        data[i][6].(string),
+			ToDate:      data[i][7].(string),
+			FromDate:    data[i][8].(string),
+			ToTime:      data[i][9].(string),
+			FromTime:    data[i][10].(string),
+			Budget:      data[i][11].(string),
+			Description: data[i][12].(string),
+			Category:    data[i][13].(string),
+		})
+	}
+	return events, orgs, nil
+}
+>>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87

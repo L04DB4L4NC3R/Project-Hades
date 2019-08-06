@@ -21,11 +21,22 @@ func CreateEvent(e Event, ce chan error) {
 		return
 	}
 
+<<<<<<< HEAD
 	result, err := con.ExecNeo(`CREATE (n:EVENT {name:$name, clubName:$clubName, toDate:$toDate, 
 		fromDate: $fromDate, toTime:$toTime, fromTime:$fromTime, budget:$budget, 
 		description:$description, category:$category, venue:$venue, attendance:$attendance, 
 		expectedParticipants:$expectedParticipants, PROrequest:$PROrequest, 
 		campusEngineerRequest:$campusEngineerRequest, duration:$duration, status:$status}) 
+=======
+	result, err := con.ExecNeo(`
+MATCH (b:ORG)
+WHERE b.name = $clubName
+CREATE (n:EVENT {name:$name, clubName:$clubName, toDate:$toDate, 
+		fromDate: $fromDate, toTime:$toTime, fromTime:$fromTime, budget:$budget, 
+		description:$description, category:$category, venue:$venue, attendance:$attendance, 
+		expectedParticipants:$expectedParticipants, PROrequest:$PROrequest, 
+		campusEngineerRequest:$campusEngineerRequest, duration:$duration, status:$status})-[:EVENT]->(b:ORG) 
+>>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87
 		RETURN n.name`, map[string]interface{}{
 
 		"name":                  e.Name,
