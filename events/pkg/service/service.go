@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/GDGVIT/Project-Hades/model"
@@ -92,24 +93,24 @@ func (b *basicEventsService) CreateEvent(ctx context.Context, event model.Event)
 	// authorize user
 	token, err := model.VerifyToken(ctx)
 	if err != nil {
-		fmt.Println("Hello world")
-		return "Error authorizing user", err
+		return err.Error(), err
 	}
-	if !model.Enforce(token.Email, event.ClubName, "member") && !model.Enforce(token.Email, event.ClubName, "admin") {
-		return "Error authorizing user", nil
-	}
-	ce := make(chan error)
-	go model.CreateEvent(event, ce)
-	if err := <-ce; err != nil {
-		return "some error occurred", err
-	}
+	if model.Enforce(token.Email, event.ClubName, "member") == true || model.Enforce(token.Email, event.ClubName, "admin") == true {
 
-	data, err := json.Marshal(event)
-	if err != nil {
-		return "error occurred while unmarshaling json", err
+		ce := make(chan error)
+		go model.CreateEvent(event, ce)
+		if err := <-ce; err != nil {
+			return "some error occurred", err
+		}
+
+		data, err := json.Marshal(event)
+		if err != nil {
+			return "error occurred while unmarshaling json", err
+		}
+		go publishEvent("hades.event.CreateEvent", data)
+		return "created", nil
 	}
-	go publishEvent("hades.event.CreateEvent", data)
-	return "created", err
+	return "Error authorizing user", nil
 }
 
 /**
@@ -178,11 +179,10 @@ func (b *basicEventsService) ReadEvent(ctx context.Context, query model.Query) (
 	// authorize user
 	token, err := model.VerifyToken(ctx)
 	if err != nil {
-		fmt.Println("Hello world")
 		return nil, err
 	}
-	if !model.Enforce(token.Email, query.Organization, "member") && !model.Enforce(token.Email, query.Organization, "admin") {
-		return nil, nil
+	if model.Enforce(token.Email, query.Organization, "member") == false && model.Enforce(token.Email, query.Organization, "admin") == false {
+		return nil, errors.New("Unauthorized")
 	}
 	ce := make(chan model.EventReturn)
 

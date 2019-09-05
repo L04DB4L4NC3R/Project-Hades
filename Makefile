@@ -1,7 +1,5 @@
-.PHONY: build
-build: 
-<<<<<<< HEAD
-=======
+.PHONY: compile
+compile: 
 		mkdir bin
 >>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87
 		GO111MODULE=on GOOS=linux CGO_ENABLED=0 go build -v -a -installsuffix cgo -o ./bin/analytics ./analytics/cmd/main.go; \
@@ -44,3 +42,25 @@ dep:
 	go mod vendor
 	go mod verify
 
+
+.PHONY: build
+build:
+	docker image build -f ./coupons/Dockerfile_performant -t angadsharma1016/hades-coupons .
+	docker image build -t angadsharma1016/hades-event -f ./events/Dockerfile_performant .
+	docker image build -t angadsharma1016/hades-participants -f ./participants/Dockerfile_performant .
+	docker image build -t angadsharma1016/hades-simple_projection -f ./simple_projection/Dockerfile_performant .
+	docker image build -t angadsharma1016/hades-exporter -f ./exporter/Dockerfile_performant .
+	docker image build -t angadsharma1016/hades-analytics -f ./analytics/Dockerfile_performant .
+	docker image build -t angadsharma1016/hades-guests -f ./guests/Dockerfile_performant .
+	docker image build -t angadsharma1016/hades-nginx -f ./Web/Dockerfile .
+
+.PHONY: push
+push:
+	docker image push angadsharma1016/hades-coupons:latest
+	docker image push angadsharma1016/hades-event:latest
+	docker image push angadsharma1016/hades-participants:latest
+	docker image push angadsharma1016/hades-simple_projection:latest
+	docker image push angadsharma1016/hades-exporter:latest
+	docker image push angadsharma1016/hades-analytics:latest
+	docker image push angadsharma1016/hades-guests:latest
+	docker image push angadsharma1016/hades-nginx:latest

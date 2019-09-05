@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/GDGVIT/Project-Hades/model"
@@ -30,7 +32,8 @@ type basicSimpleProjectionService struct{}
 *	"event":"DEVFEST 2019",
 *	"query":{
 *		"key":"gender",
-*		"value":"F"
+*		"value":"F",
+* 	"specific" : "DSC-VIT"
 *	}
 *}
 *@apiParamExample {json} response-example
@@ -49,7 +52,12 @@ type basicSimpleProjectionService struct{}
 *
 *@apiParamExample {json} request-example-all
 *{
-*	"event":"DEVFEST 2019"
+*	"event":"DEVFEST 2019",
+* "query": {
+*			"key": ""
+*			"value": "",
+*			"specific" :"DSCVIT"
+*	}
 *}
 *
 *@apiParamExample {json} response-example-all
@@ -81,17 +89,27 @@ type basicSimpleProjectionService struct{}
 *}
 **/
 func (b *basicSimpleProjectionService) ProjectAll(ctx context.Context, event string, query model.Query) (rs []model.Participant, err error) {
-
-	c := make(chan model.SafeParticipantReturn)
-	mutex := &sync.Mutex{}
-	go model.ViewAll(event, query, c, mutex)
-
-	msg := <-c
-	if err := msg.Err; err != nil {
+	// authorize user
+	token, err := model.VerifyToken(ctx)
+	if err != nil {
 		return nil, err
 	}
-	return msg.Participants, msg.Err
+	fmt.Println(query, event)
+	if model.Enforce(token.Email, query.Specific, "member") == true || model.Enforce(token.Email, query.Specific, "admin") == true {
 
+		c := make(chan model.SafeParticipantReturn)
+		mutex := &sync.Mutex{}
+		go model.ViewAll(event, query, c, mutex)
+
+		msg := <-c
+		if err := msg.Err; err != nil {
+			return nil, err
+		}
+		return msg.Participants, msg.Err
+
+	}
+
+	return nil, errors.New("Error authorizing user")
 }
 
 /**
@@ -110,7 +128,8 @@ func (b *basicSimpleProjectionService) ProjectAll(ctx context.Context, event str
 *	"day":2,
 *	"query":{
 *		"key":"gender",
-*		"value":"F"
+*		"value":"F",
+* 	"specific" : "DSC-VIT"
 *	}
 *}
 *@apiParamExample {json} response-example
@@ -162,17 +181,27 @@ func (b *basicSimpleProjectionService) ProjectAll(ctx context.Context, event str
 *}
 **/
 func (b *basicSimpleProjectionService) ProjectPresent(ctx context.Context, event string, day int, query model.Query) (rs []model.Participant, err error) {
-
-	c := make(chan model.SafeParticipantReturn)
-	mutex := &sync.Mutex{}
-	go model.ViewPresent(event, query, day, c, mutex)
-
-	msg := <-c
-	if err := msg.Err; err != nil {
+	// authorize user
+	token, err := model.VerifyToken(ctx)
+	if err != nil {
 		return nil, err
 	}
-	return msg.Participants, msg.Err
-	return rs, err
+	if model.Enforce(token.Email, query.Specific, "member") == true || model.Enforce(token.Email, query.Specific, "admin") == true {
+
+		c := make(chan model.SafeParticipantReturn)
+		mutex := &sync.Mutex{}
+		go model.ViewPresent(event, query, day, c, mutex)
+
+		msg := <-c
+		if err := msg.Err; err != nil {
+			return nil, err
+		}
+		return msg.Participants, msg.Err
+		return rs, err
+
+	}
+
+	return nil, errors.New("Error authorizing user")
 }
 
 /**
@@ -191,7 +220,8 @@ func (b *basicSimpleProjectionService) ProjectPresent(ctx context.Context, event
 *	"day":2,
 *	"query":{
 *		"key":"gender",
-*		"value":"F"
+*		"value":"F",
+* 	"specific" : "DSC-VIT"
 *	}
 *}
 *@apiParamExample {json} response-example
@@ -211,15 +241,27 @@ func (b *basicSimpleProjectionService) ProjectPresent(ctx context.Context, event
 *}
 **/
 func (b *basicSimpleProjectionService) ProjectAbsent(ctx context.Context, event string, day int, query model.Query) (rs []model.Participant, err error) {
-	c := make(chan model.SafeParticipantReturn)
-	go model.ViewAbsent(event, query, day, c)
 
-	msg := <-c
-	if err := msg.Err; err != nil {
+	// authorize user
+	token, err := model.VerifyToken(ctx)
+	if err != nil {
 		return nil, err
 	}
-	return msg.Participants, msg.Err
-	return rs, err
+	if model.Enforce(token.Email, query.Specific, "member") == true || model.Enforce(token.Email, query.Specific, "admin") == true {
+
+		c := make(chan model.SafeParticipantReturn)
+		go model.ViewAbsent(event, query, day, c)
+
+		msg := <-c
+		if err := msg.Err; err != nil {
+			return nil, err
+		}
+		return msg.Participants, msg.Err
+		return rs, err
+
+	}
+
+	return nil, errors.New("Error authorizing user")
 }
 
 // NewBasicSimpleProjectionService returns a naive, stateless implementation of SimpleProjectionService.
