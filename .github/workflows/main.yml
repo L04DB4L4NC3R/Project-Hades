@@ -13,6 +13,8 @@ jobs:
       run: make compile
     - name: Build images
       run:  make build
+    - name: Login to dockerhub
+      run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
     - name: Push images
     - run:  make push
     - name: Run a multi-line script
