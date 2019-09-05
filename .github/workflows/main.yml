@@ -17,7 +17,7 @@ jobs:
       run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
     - name: Push images
     - run:  make push
-    - name: Run a multi-line script
+    - name: Health check
       run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
+        echo Build successfully completed
+        echo Ran
