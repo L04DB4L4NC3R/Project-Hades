@@ -1,0 +1,21 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/setup-go@v1
+    - name: Compile Binaries
+      run: make compile
+    - name: Build images
+      run:  make build
+    - name: Push images
+    - run:  make push
+    - name: Run a multi-line script
+      run: |
+        echo Add other actions to build,
+        echo test, and deploy your project.
