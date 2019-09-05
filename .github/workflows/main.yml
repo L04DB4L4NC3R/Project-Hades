@@ -9,6 +9,8 @@ jobs:
     
     steps:
     - uses: actions/setup-go@v1
+    - name: List files
+      run: ls
     - name: Compile Binaries
       run: make compile
     - name: Build images
