@@ -9,17 +9,10 @@ jobs:
     
     steps:
     - uses: actions/setup-go@v1
-    - name: List files
-      run: ls
-    - name: Compile Binaries
-      run: make compile
-    - name: Build images
-      run:  make build
-    - name: Login to dockerhub
-      run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-    - name: Push images
-      run:  make push
-    - name: Health check
+    - name: Compile Binaries, build images and push to dockerhub
       run: |
-        echo Build successfully completed
-        echo Ran
+        ls
+        make compile
+        make build
+        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        make push
