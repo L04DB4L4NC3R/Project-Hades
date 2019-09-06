@@ -1620,6 +1620,69 @@ define({ "api": [
       "examples": [
         {
           "title": "request-example",
+          "content": "\n{\n\t\"data\":{\n\t\"name\":\"DSC-VIT\",\n\t\"location\":\"India\",\n\t\"description\":\"Developer Student Clubs\",\n\t\"tag\":\"technical\",\n\t\"website\":\"https://dsv-vit-vellore.com\"\n}\n}\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "organization/pkg/service/service.go",
+    "groupTitle": "organization"
+  },
+  {
+    "type": "post",
+    "url": "/api/v1/org/create-org",
+    "title": "create an organization",
+    "name": "create_an_organization",
+    "group": "organization",
+    "permission": [
+      {
+        "name": "user"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "name",
+            "description": "<p>name of the org</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "location",
+            "description": "<p>location of the org</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "description",
+            "description": "<p>description of the org</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "tag",
+            "description": "<p>tag of the org</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "website",
+            "description": "<p>website of the org</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "request-example",
           "content": "\n{\n\t\"name\":\"DSC-VIT\",\n\t\"location\":\"India\",\n\t\"description\":\"Developer Student Clubs\",\n\t\"tag\":\"technical\",\n\t\"website\":\"https://dsv-vit-vellore.com\"\n}",
           "type": "json"
         }
@@ -1627,6 +1690,48 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "organization/endpoints/auth_handler.go",
+    "groupTitle": "organization"
+  },
+  {
+    "type": "post",
+    "url": "/api/v1/org/add-members",
+    "title": "invite a user org",
+    "name": "invite_a_user_to_an_org",
+    "group": "organization",
+    "permission": [
+      {
+        "name": "organization admin"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "email",
+            "description": "<p>email of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "org",
+            "description": "<p>name of the organization</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "request-example",
+          "content": "\n{\n\t\"data\":{\n\t\"name\":\"DSC-VIT\",\n\t\"location\":\"India\",\n\t\"description\":\"Developer Student Clubs\",\n\t\"tag\":\"technical\",\n\t\"website\":\"https://dsv-vit-vellore.com\"\n}\n}\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "organization/pkg/service/service.go",
     "groupTitle": "organization"
   },
   {
@@ -1715,6 +1820,95 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/api/v1/org/login",
+    "title": "login as a user",
+    "name": "login_as_a_user",
+    "group": "organization",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "password",
+            "description": "<p>password of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "email",
+            "description": "<p>email of the user</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "request-example",
+          "content": "{\n\t\"email\":\"test1@test.com\",\n\t\"password\":\"test\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "response-example",
+          "content": "{\n   \"rs\": \"Done\",\n   \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwicm9sZSI6IkRFRkFVTFQiLCJvcmdhbml6YXRpb24iOiIifQ.3Qj3eu8iwXL2v1Rb7qGEf5USQ-WVjRvYiLALWIbWZ5c\",\n   \"err\": null\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "organization/pkg/service/service.go",
+    "groupTitle": "organization"
+  },
+  {
+    "type": "post",
+    "url": "/api/v1/org/login-org",
+    "title": "login to the org workspace (for privellage escalation)",
+    "name": "login_to_the_org_workspace__for_privellage_escalation_",
+    "group": "organization",
+    "permission": [
+      {
+        "name": "organization member"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "password",
+            "description": "<p>password of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "email",
+            "description": "<p>email of the user</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "request-example",
+          "content": "{\n\t\"name\":\"GDGVIT\",\n\t\"role\":\"admin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "response-example",
+          "content": "{\n   \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwicm9sZSI6IkRFRkFVTFQiLCJvcmdhbml6YXRpb24iOiIifQ.3Qj3eu8iwXL2v1Rb7qGEf5USQ-WVjRvYiLALWIbWZ5c\",\n   \"err\": null\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "organization/pkg/service/service.go",
+    "groupTitle": "organization"
+  },
+  {
+    "type": "post",
     "url": "/api/v1/org/login-org",
     "title": "login to the org workspace (for privellage escalation)",
     "name": "login_to_the_org_workspace__for_privellage_escalation_",
@@ -1758,6 +1952,97 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "organization/endpoints/auth_handler.go",
+    "groupTitle": "organization"
+  },
+  {
+    "type": "post",
+    "url": "/api/v1/org/signup",
+    "title": "signup as a user",
+    "name": "signup_as_a_user",
+    "group": "organization",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "firstName",
+            "description": "<p>first name of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "lastName",
+            "description": "<p>last name of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "password",
+            "description": "<p>password of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "email",
+            "description": "<p>email of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "phoneNumber",
+            "description": "<p>phoneNumber of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "linkedIn",
+            "description": "<p>linkedIn URL of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "facebook",
+            "description": "<p>facebook URL of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "description",
+            "description": "<p>description of the user</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "createdAt",
+            "description": "<p>when was the user created</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "request-example",
+          "content": "\n{\n\t\"user\" : {\n\t\"firstName\": \"test\",\n\t\"lastName\": \"test\",\n\t\"password\": \"test\",\n\t\"email\": \"test1@test.com\",\n\t\"phoneNumber\": \"998171818\",\n\t\"linkedIn\": \"test\",\n\t\"facebook\": \"test\",\n\t\"description\": \"test\",\n\t\"createdAt\": \"20-01-01\"\n\t}\n}",
+          "type": "json"
+        },
+        {
+          "title": "response-example",
+          "content": "{\n    \"rs\": \"Done\",\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwicm9sZSI6IkRFRkFVTFQiLCJvcmdhbml6YXRpb24iOiIifQ.3Qj3eu8iwXL2v1Rb7qGEf5USQ-WVjRvYiLALWIbWZ5c\",\n    \"err\": null\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "organization/pkg/service/service.go",
     "groupTitle": "organization"
   },
   {
