@@ -2,19 +2,12 @@ package model
 
 import (
 	"errors"
-<<<<<<< HEAD
-=======
 	"fmt"
->>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87
 	"log"
 	"time"
 )
 
-<<<<<<< HEAD
-func CreateNewOrg(org Organization) error {
-=======
 func CreateNewOrg(org Organization, user string) error {
->>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87
 	data, _, _, err := con.QueryNeoAll(`
 MATCH(n:ORG) WHERE n.name = $name
 RETURN n.createdAt
@@ -156,6 +149,22 @@ func GetOrgs(org string) ([]Organization, error) {
 
 func CreateJoinRequest(user string, org string) error {
 
+	rss, _, _, err := con.QueryNeoAll(`
+MATCH(n:ORG)<-[:JOIN]-(a:USER) WHERE n.name = $name
+RETURN n.createdAt
+				`, map[string]interface{}{
+		"name": org,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// if org exists then throw error
+	if len(rss) > 0 {
+		return errors.New("Request is already pending")
+	}
+
 	data, _, _, err := con.QueryNeoAll(`
 				MATCH(n:ORG)<-[r:JOIN]-(a:USER)
 				WHERE n.name = $org AND a.email = $user
@@ -165,13 +174,42 @@ func CreateJoinRequest(user string, org string) error {
 		"user": user,
 	})
 
-	if len(data) > 1 {
+	if len(data) > 0 {
 		return errors.New("A join request is already pending")
 	}
 	_, err = con.ExecNeo(`
 					MATCH(n:ORG) WHERE n.name = $org
 					MATCH(a:USER) WHERE a.email = $user
 					CREATE (n)<-[:JOIN]-(a)
+				`, map[string]interface{}{
+		"org":  org,
+		"user": user,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DenyJoinRequest(user, org string) error {
+
+	data, _, _, err := con.QueryNeoAll(`
+				MATCH(n:ORG)<-[r:JOIN]-(a:USER)
+				WHERE n.name = $org AND a.email = $user
+				RETURN r
+				`, map[string]interface{}{
+		"org":  org,
+		"user": user,
+	})
+
+	if len(data) < 1 {
+		return errors.New("No join request found")
+	}
+
+	_, err = con.ExecNeo(`
+					MATCH(n:ORG)<-[r:JOIN]-(a:USER) 
+					WHERE n.name = $org AND a.email = $user
+					DELETE r
 				`, map[string]interface{}{
 		"org":  org,
 		"user": user,
@@ -193,7 +231,7 @@ func AcceptJoinRequest(user string, org string) error {
 		"user": user,
 	})
 
-	if len(data) <= 1 {
+	if len(data) < 1 {
 		return errors.New("No join request found")
 	}
 
@@ -302,4 +340,118 @@ e.clubName, e.name, e.toDate, e.fromDate, e.toTime, e.fromTime, e.budget, e.desc
 	}
 	return events, orgs, nil
 }
+<<<<<<< HEAD
 >>>>>>> 7c7d564eba23580f2d5e4f43ce488a40f66e2e87
+=======
+
+func IsEventOfOrg(eventname, orgname string) (bool, error) {
+	data, _, _, err := con.QueryNeoAll(`
+MATCH(n:ORG)<-[r]-(a:EVENT) WHERE n.name = $name 
+AND a.name = $eventname
+RETURN n.createdAt
+				`, map[string]interface{}{
+		"name":      orgname,
+		"eventname": eventname,
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	// if org exists then throw error
+	if len(data) > 1 {
+		return false, nil
+	} else {
+		return true, nil
+	}
+}
+
+func EnforceRoleMember(email, org string) (bool, error) {
+
+	data, _, _, err := con.QueryNeoAll(`
+MATCH(n:ORG)<-[r:MEMBER]-(a:USER) WHERE n.name = $name 
+AND a.email = $email
+RETURN n.createdAt
+				`, map[string]interface{}{
+		"name":  org,
+		"email": email,
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	// if role exists
+	if fmt.Sprintf("%t", data) != "[]" {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
+func EnforceRoleAdmin(email, org string) (bool, error) {
+
+	data, _, _, err := con.QueryNeoAll(`
+MATCH(n:ORG)<-[r:ADMIN]-(a:USER) WHERE n.name = $name 
+AND a.email = $email
+RETURN n.createdAt
+				`, map[string]interface{}{
+		"name":  org,
+		"email": email,
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	// if role exists
+	if fmt.Sprintf("%t", data) != "[]" {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
+func EnforceRoleEither(email, org string) (bool, error) {
+
+	data, _, _, err := con.QueryNeoAll(`
+MATCH(n:ORG)<-[r:MEMBER]-(a:USER) WHERE n.name = $name 
+AND a.email = $email
+RETURN n.createdAt
+				`, map[string]interface{}{
+		"name":  org,
+		"email": email,
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	// if role exists
+	if fmt.Sprintf("%t", data) != "[]" {
+		return true, nil
+	} else {
+
+		data, _, _, err = con.QueryNeoAll(`
+MATCH(n:ORG)<-[r:ADMIN]-(a:USER) WHERE n.name = $name 
+AND a.email = $email
+RETURN n.createdAt
+				`, map[string]interface{}{
+			"name":  org,
+			"email": email,
+		})
+
+		if err != nil {
+			return false, err
+		}
+
+		// if role exists
+		if fmt.Sprintf("%t", data) != "[]" {
+			return true, nil
+		} else {
+			return false, nil
+		}
+
+	}
+}
+>>>>>>> 51e3d39358e946a859a13e9f872f254bc5701ec0

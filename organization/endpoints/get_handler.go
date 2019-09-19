@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -61,7 +62,7 @@ func getOrgs() http.HandlerFunc {
 *
 * @apiParamExample {json} request-example
 *
-* curl localhost/api/v1/org/view-req?q=GDG-VIT -H '{"Authorization":"asdbasbdbasjdbasjhbdhasd"}'
+* curl localhost/api/v1/org/view-req?org=GDG-VIT -H '{"Authorization":"asdbasbdbasjdbasjhbdhasd"}'
 *
 * @apiParamExample {json} response-example
 *
@@ -114,8 +115,16 @@ func getJoinRequest() http.HandlerFunc {
 			return
 		}
 		org := r.URL.Query().Get("org")
-		if !model.Enforce(tk.Email, org, "admin") {
-			json.NewEncoder(w).Encode(views.Msg{"Error: User does not have sufficient permission", nil})
+
+		access, err := model.EnforceRoleAdmin(tk.Email, org)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(views.Msg{"Some error occurred", err.Error()})
+			return
+		}
+
+		if !access {
+			json.NewEncoder(w).Encode(views.Msg{"failed to authenticate user", errors.New("failed to authenticate user")})
 			return
 		}
 
@@ -290,9 +299,16 @@ func GetOrgEvents() http.HandlerFunc {
 			return
 		}
 		org := r.URL.Query().Get("org")
-		if !model.Enforce(tk.Email, org, "member") && !model.Enforce(tk.Email, org, "admin") {
 
-			json.NewEncoder(w).Encode(views.Msg{"Not enough permission", nil})
+		access, err := model.EnforceRoleEither(tk.Email, org)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(views.Msg{"Some error occurred", err.Error()})
+			return
+		}
+
+		if !access {
+			json.NewEncoder(w).Encode(views.Msg{"failed to authenticate user", errors.New("failed to authenticate user")})
 			return
 		}
 		events, err := model.ReadEventsByOrg(org)

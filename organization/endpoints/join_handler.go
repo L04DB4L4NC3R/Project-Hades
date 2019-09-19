@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/GDGVIT/Project-Hades/model"
@@ -54,7 +55,8 @@ func sendJoinRequest() http.HandlerFunc {
 * @apiParamExample {json} request-example
 *{
 *	"email":"test1@test.com",
-*	"org":"GDG-VIT"
+*	"org":"GDG-VIT",
+* "accept": true
 *}
 * @apiParamExample {json} response-example
 *
@@ -72,21 +74,36 @@ func acceptJoinRequest() http.HandlerFunc {
 		}
 		req := views.AddMembers{}
 		json.NewDecoder(r.Body).Decode(&req)
-		if !model.Enforce(tk.Email, req.Org, "admin") {
-			json.NewEncoder(w).Encode(views.Msg{"Error: User does not have sufficient permission", nil})
-			return
-		}
-		if err := model.AcceptJoinRequest(req.Email, req.Org); err != nil {
+
+		access, err := model.EnforceRoleAdmin(tk.Email, req.Org)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(views.Msg{"Some error occurred", err.Error()})
 			return
 		}
 
-		if err := model.AddPolicy(req.Email, req.Org, "member"); err != nil {
-
-			json.NewEncoder(w).Encode(views.Msg{"Some error occurred", err.Error()})
+		if !access {
+			json.NewEncoder(w).Encode(views.Msg{"failed to authenticate user", errors.New("failed to authenticate user")})
 			return
 		}
-		json.NewEncoder(w).Encode(views.Msg{"Added as a member", nil})
+
+		if req.Accept {
+			if err := model.AcceptJoinRequest(req.Email, req.Org); err != nil {
+				json.NewEncoder(w).Encode(views.Msg{"Some error occurred", err.Error()})
+				return
+			}
+			if err := model.AddPolicy(req.Email, req.Org, "member"); err != nil {
+				json.NewEncoder(w).Encode(views.Msg{"Some error occurred", err.Error()})
+				return
+			}
+		} else {
+			if err := model.DenyJoinRequest(req.Email, req.Org); err != nil {
+				json.NewEncoder(w).Encode(views.Msg{"Some error occurred", err.Error()})
+				return
+			}
+		}
+
+		json.NewEncoder(w).Encode(views.Msg{"Completed action", nil})
 		return
 	}
 }

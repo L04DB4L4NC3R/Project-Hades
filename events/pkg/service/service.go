@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -95,7 +94,12 @@ func (b *basicEventsService) CreateEvent(ctx context.Context, event model.Event)
 	if err != nil {
 		return err.Error(), err
 	}
-	if model.Enforce(token.Email, event.ClubName, "member") == true || model.Enforce(token.Email, event.ClubName, "admin") == true {
+
+	access, err := model.EnforceRoleEither(token.Email, event.ClubName)
+	if err != nil {
+		return "some error occurred", err
+	}
+	if access {
 
 		ce := make(chan error)
 		go model.CreateEvent(event, ce)
@@ -103,11 +107,13 @@ func (b *basicEventsService) CreateEvent(ctx context.Context, event model.Event)
 			return "some error occurred", err
 		}
 
-		data, err := json.Marshal(event)
-		if err != nil {
-			return "error occurred while unmarshaling json", err
-		}
-		go publishEvent("hades.event.CreateEvent", data)
+		//data, err := json.Marshal(event)
+		/*
+			if err != nil {
+				return "error occurred while unmarshaling json", err
+			}
+		*/
+		//go publishEvent("hades.event.CreateEvent", data)
 		return "created", nil
 	}
 	return "Error authorizing user", nil
@@ -179,11 +185,26 @@ func (b *basicEventsService) ReadEvent(ctx context.Context, query model.Query) (
 	// authorize user
 	token, err := model.VerifyToken(ctx)
 	if err != nil {
+		fmt.Println("Hello world")
 		return nil, err
 	}
-	if model.Enforce(token.Email, query.Organization, "member") == false && model.Enforce(token.Email, query.Organization, "admin") == false {
-		return nil, errors.New("Unauthorized")
+	access, err := model.EnforceRoleEither(token.Email, query.Organization)
+	if err != nil {
+		return nil, err
 	}
+
+	if !access {
+		return nil, errors.New("failed to authenticate user")
+	}
+
+	isEventOfOrg, err := model.IsEventOfOrg(query.Specific, token.Organization)
+	if err != nil {
+		return nil, err
+	}
+	if !isEventOfOrg {
+		return nil, errors.New("The event does not belong to this organization")
+	}
+
 	ce := make(chan model.EventReturn)
 
 	go model.ShowEventData(query, ce)
@@ -229,8 +250,21 @@ func (b *basicEventsService) UpdateEvent(ctx context.Context, query model.Query)
 		fmt.Println("Hello world")
 		return "Error authorizing user", err
 	}
-	if !model.Enforce(token.Email, query.Organization, "member") && !model.Enforce(token.Email, query.Organization, "admin") {
-		return "Error authorizing user", nil
+	access, err := model.EnforceRoleEither(token.Email, query.Organization)
+	if err != nil {
+		return "", err
+	}
+
+	if !access {
+		return "", errors.New("failed to authenticate user")
+	}
+
+	isEventOfOrg, err := model.IsEventOfOrg(query.Specific, token.Organization)
+	if err != nil {
+		return "Some error occurred while checking if the event belongs to this org", err
+	}
+	if !isEventOfOrg {
+		return "The event is not of this org", errors.New("The event does not belong to this organization")
 	}
 
 	ce := make(chan error)
@@ -272,11 +306,22 @@ func (b *basicEventsService) DeleteEvent(ctx context.Context, query model.Query)
 		fmt.Println("Hello world")
 		return "Error authorizing user", err
 	}
-
-	if !model.Enforce(token.Email, query.Organization, "member") && !model.Enforce(token.Email, query.Organization, "admin") {
-		return "Error authorizing user", nil
+	access, err := model.EnforceRoleEither(token.Email, query.Organization)
+	if err != nil {
+		return "", err
 	}
 
+	if !access {
+		return "", errors.New("failed to authenticate user")
+	}
+
+	isEventOfOrg, err := model.IsEventOfOrg(query.Specific, token.Organization)
+	if err != nil {
+		return "Some error occurred while checking if the event belongs to this org", err
+	}
+	if !isEventOfOrg {
+		return "The event is not of this org", errors.New("The event does not belong to this organization")
+	}
 	ce := make(chan error)
 
 	go model.DeleteEvent(query, ce)
